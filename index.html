@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MimoGame Arcade</title>
+  <style>
+    :root { --cor-tema: #b22222; }
+     body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0; padding: 20px;
+      background: #fdfaf6;
+      color: #333;
+      font-size: 16px;
+      transition: background 0.3s ease;
+    }
+    input, select, button {
+      width: 100%; font-size: 16px;
+      margin: 10px 0; padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+    }
+    button {
+      background-color: var(--cor-tema);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    #btnGerarArquivo {
+        background-color: #3CB371; /* Verde para destacar a ação principal */
+        font-size: 18px;
+        padding: 15px;
+    }
+    section.aba { display: none; padding: 15px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    section.aba.active { display: block; }
+    h3 { color: var(--cor-tema); }
+    #telaJogo {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px; margin-top: 20px;
+    }
+    .carta {
+      font-size: 32px; background: #eee;
+      padding: 20px; text-align: center;
+      border-radius: 10px; user-select: none;
+      cursor: pointer;
+    }
+    #perfilVisual {
+      text-align: center; font-weight: bold;
+      margin-bottom: 10px; padding: 10px;
+      background-color: #f0f0f0; border-radius: 8px;
+    }
+    footer {
+      background: var(--cor-tema); color: white;
+      padding: 20px; text-align: center;
+      font-size: 14px; margin-top: 30px;
+      border-radius: 12px 12px 0 0;
+    }
+    #whatsappBtn {
+      display: none;
+      margin-top: 15px; padding: 10px 20px;
+      background-color: #25D366;
+      color: white;
+      text-decoration: none;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+    #modalRecompensa {
+      display: none; position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #000000aa;
+      justify-content: center; align-items: center;
+      z-index: 999;
+    }
+    #modalRecompensa div {
+      background: white; padding: 20px;
+      border-radius: 12px; text-align: center;
+      max-width: 300px;
+    }
+    /* Estilo do novo modal de pré-visualização */
+    #modalVisualizacao {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000000aa;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #modalVisualizacao div {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 80%;
+      max-height: 80%;
+      overflow-y: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .marcador-pop {
+      position: fixed; bottom: 80px; right: 20px;
+      background: #fff; border: 1px solid #ddd;
+      border-radius: 12px; padding: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 999; width: 220px;
+      display: none;
+    }
+    .marcador-pop h4 { color: var(--cor-tema); text-align: center; margin: 5px 0 15px 0; }
+    .marcador-pop button {
+      width: 100%; margin: 5px 0; padding: 10px;
+      font-size: 14px; border-radius: 6px;
+      background: #f5f5f5; color: #333;
+      text-align: left;
+    }
+     .marcador-pop button:hover { background: #e0e0e0; }
+    .marcador-pop .btn-fechar { 
+      background: #f44336; 
+      color: white;
+      margin-bottom: 0;
+    }
+    #botaoMarcador {
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--cor-tema); color: white;
+      border: none; width: 60px; height: 60px;
+      border-radius: 50%; font-size: 28px;
+      z-index: 998; display: none;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .splash {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #fff8f0;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      z-index: 1000;
+      animation: fadeOut 2s ease forwards;
+      animation-delay: 2.5s;
+    }
+    .splash img { width: 120px; border-radius: 20px; margin-bottom: 15px; }
+    .splash h1 { color: var(--cor-tema); }
+    @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+    .aviso-demo {
+      position: fixed; top: 0; left: 0; width: 100%;
+      background: #ffeb3b; color: #333; text-align: center;
+      padding: 10px; font-weight: bold; z-index: 1000;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="avisoDemo" class="aviso-demo">Modo de Demonstração Ativado. As configurações não serão salvas permanentemente e a geração de arquivos está desabilitada.</div>
+
+<div id="splash" class="splash">
+  <img id="splashLogo" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh2XPuXiJsszG17i6fxzPhgoDAuG379KNT0apLUvOM8fwKUvMcmkFsdfpv-FknrSvU00AoTPLL7VwhAYsEYSb_4c7DvQQyopmugO3S8SKlDNS9j8YflH2YGCBfxkW19M40w5ULl1HthIvBXLwWgj1swjvxkMdQbxR71jQLDOhEFGTb625N_koVX6PMbg9-0/s716/Clipped_image_20250916_133639.png" alt="Logo" />
+  <h1 id="splashTitulo">MimoGame</h1>
+  <p id="splashSubtitulo">LABRIOLAG</p>
+</div>
+
+<div id="marcadorPop" class="marcador-pop">
+  <h4>Menu Principal</h4>
+  <button onclick="abrirAba('jogos')">🎮 Jogos</button>
+  <button onclick="abrirAba('login')">👤 Digitar Nome</button>
+  <button class="btn-fechar" onclick="fecharMarcador()">❌ Fechar Menu</button>
+</div>
+
+<button id="botaoMarcador" onclick="mostrarMarcador()">⚙️</button>
+
+<section id="login" class="aba">
+  <h3 id="loginTitulo">Identifique-se para jogar</h3>
+  <input type="text" id="nome" placeholder="Digite seu nome" />
+  <input type="password" id="senha" placeholder="Senha (para administradores)" />
+  <button onclick="validarLogin()">Entrar</button>
+</section>
+
+<div id="perfilVisual" style="display:none;"></div>
+
+<section id="jogos" class="aba">
+  <h3>Jogo da Memória</h3>
+  <button onclick="iniciarMemoria()">Iniciar Jogo</button>
+  <div id="telaJogo"></div>
+</section>
+
+<section id="config2" class="aba">
+  <h3>Configurações do Comerciante</h3>
+  <label for="nomeLoja">Nome do Negócio:</label>
+  <input type="text" id="nomeLoja" placeholder="Nome do seu negócio" />
+  <label for="logoLoja">URL da sua Logo:</label>
+  <input type="url" id="logoLoja" placeholder="https://..." />
+  <label for="sloganLoja">Slogan (frase no rodapé):</label>
+  <input type="text" id="sloganLoja" placeholder="Ex: A melhor pizza da cidade!" />
+  <label for="whatsappLoja">Nº de WhatsApp (com DDD):</label>
+  <input type="tel" id="whatsappLoja" placeholder="Ex: 11987654321" />
+  <label for="tipoLoja">Estilo do Negócio (define o tema):</label>
+  <select id="tipoLoja">
+    <option value="">-- Usar Tema Padrão --</option>
+    <option value="game">🕹️ Game</option>
+    <option value="pizzaria">🍕 Pizzaria</option>
+    <option value="lanchonete">🥤 Lanchonete</option>
+    <option value="restaurante">🍽️ Restaurante</option>
+    <option value="hamburgueria">🍔 Hamburgueria</option>
+    <option value="padaria">🍞 Padaria</option>
+    <option value="doceira">🍬 Doceira</option>
+    <option value="acaitaria">🍧 Açaitaria</option>
+    <option value="sorveteria">🍨 Sorveteria</option>
+    <option value="posto_gasolina">⛽ Posto de Gasolina</option>
+    <option value="dentista">🦷 Dentista</option>
+    <option value="saude">🩺 Saúde</option>
+    <option value="marceneiro">🪚 Marceneiro</option>
+    <option value="advocacia">⚖️ Advocacia</option>
+    <option value="seguranca">🛡️ Segurança</option>
+    <option value="balada">🕺 Balada</option>
+    <option value="hotel">🏨 Hotel</option>
+  </select>
+  <label for="premioTexto">Texto do Prêmio:</label>
+  <input type="text" id="premioTexto" placeholder="Ex: Um café grátis!" />
+  <button onclick="visualizarConfiguracoes('comerciante')">👀 Visualizar Configs</button>
+  <button onclick="salvarConfig2(true)">Apenas Salvar para Mim</button>
+  <button id="btnGerarArquivo" onclick="gerarArquivoConfigurado()">✅ Salvar e Gerar Arquivo para Cliente</button>
+</section>
+
+<section id="painelDev" class="aba">
+  <h3>🧪 Painel de Controle DEVGUI</h3>
+  <h4>Personalização Padrão do App</h4>
+  <label>URL da Logo Padrão:</label>
+  <input id="devSplashLogo" placeholder="URL da logo na splash" />
+  <label>Título Padrão (Splash):</label>
+  <input id="devSplashTitulo" placeholder="Título na splash" />
+  <label>Subtítulo Padrão (Splash):</label>
+  <input id="devSplashSubtitulo" placeholder="Subtítulo na splash" />
+  <label>Slogan Padrão (Rodapé):</label>
+  <input id="devSlogan" placeholder="Slogan padrão do app" />
+  <label>Contato Padrão (Rodapé):</label>
+  <input id="devContato" placeholder="Telefone ou endereço no rodapé" />
+  <label for="devTema">Tema Padrão do App:</label>
+  <select id="devTema">
+    <option value="game">🕹️ Game</option>
+    <option value="pizzaria">🍕 Pizzaria</option>
+    <option value="lanchonete">🥤 Lanchonete</option>
+    <option value="restaurante">🍽️ Restaurante</option>
+    <option value="hamburgueria">🍔 Hamburgueria</option>
+    <option value="padaria">🍞 Padaria</option>
+    <option value="doceira">🍬 Doceira</option>
+    <option value="acaitaria">🍧 Açaitaria</option>
+    <option value="sorveteria">🍨 Sorveteria</option>
+    <option value="posto_gasolina">⛽ Posto de Gasolina</option>
+    <option value="dentista">🦷 Dentista</option>
+    <option value="saude">🩺 Saúde</option>
+    <option value="marceneiro">🪚 Marceneiro</option>
+    <option value="advocacia">⚖️ Advocacia</option>
+    <option value="seguranca">🛡️ Segurança</option>
+    <option value="balada">🕺 Balada</option>
+    <option value="hotel">🏨 Hotel</option>
+  </select>
+  <button onclick="visualizarConfiguracoes('dev')">👀 Visualizar Configs</button>
+  <button onclick="salvarConfigDev()">Aplicar Customizações</button>
+  <h4>Ferramentas de Teste</h4>
+  <button onclick="simularVitoria()">Simular Vitória</button>
+  <button onclick="resetarDados()">🧹 Resetar Dados Salvos</button>
+</section>
+
+<div id="modalRecompensa" style="display:none;">
+  <div><h3>🎉 Você ganhou!</h3><p id="textoRecompensa"></p><button onclick="fecharModal('recompensa')">Fechar</button></div>
+</div>
+
+<div id="modalVisualizacao" style="display:none;">
+    <div>
+        <h3>Pré-visualização das Configurações</h3>
+        <pre id="textoVisualizacao"></pre>
+        <button onclick="fecharModal('visualizacao')">Fechar</button>
+    </div>
+</div>
+
+<footer>
+  <img id="logoRodape" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh2XPuXiJsszG17i6fxzPhgoDAuG379KNT0apLUvOM8fwKUvMcmkFsdfpv-FknrSvU00AoTPLL7VwhAYsEYSb_4c7DvQQyopmugO3S8SKlDNS9j8YflH2YGCBfxkW19M40w5ULl1HthIvBXLwWgj1swjvxkMdQbxR71jQLDOhEFGTb625N_koVX6PMbg9-0/s716/Clipped_image_20250916_133639.png" alt="Logo" style="max-width:80px; border-radius:8px;" />
+  <h4 id="nomeRodape">MimoGame</h4>
+  <p id="sloganRodape">Jogue e ganhe prêmios!</p>
+  <div id="contatoRodape" style="margin-top:10px;">Pix@xmail.net</div>
+  <a id="whatsappBtn" href="#" target="_blank">📲 Fale Conosco no WhatsApp</a>
+</footer>
+
+<script>
+  let jogadorConfig = { tipo: 'anonimo' };
+  let lojaConfig = {};
+  let devConfig = {};
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof PRELOADED_CONFIG === 'undefined') {
+        carregarDados(); // Versão MASTER: carrega do localStorage
+    } else {
+        // Versão CLIENTE: carrega as configs injetadas
+        lojaConfig = PRELOADED_CONFIG.loja || {};
+        devConfig = PRELOADED_CONFIG.dev || {};
+        jogadorConfig.tipo = 'Jogador';
+    }
+    preencherFormularios();
+    aplicarConfiguracoesVisuais();
+    setTimeout(() => {
+      document.getElementById('splash').style.display = 'none';
+      abrirAba('jogos');
+      document.getElementById('botaoMarcador').style.display = 'block';
+    }, 3000);
+  });
+  
+  function mostrarMarcador() { document.getElementById('marcadorPop').style.display = 'block'; document.getElementById('botaoMarcador').style.display = 'none'; }
+  function fecharMarcador() { document.getElementById('marcadorPop').style.display = 'none'; document.getElementById('botaoMarcador').style.display = 'block'; }
+  function abrirAba(nome) { document.querySelectorAll('.aba').forEach(el => el.classList.remove('active')); document.getElementById(nome).classList.add('active'); if (nome !== 'login') fecharMarcador(); }
+
+  function validarLogin() {
+    const nome = document.getElementById('nome').value.trim();
+    // A lógica de senha só existe na versão MASTER
+    if (typeof PRELOADED_CONFIG === 'undefined') {
+        const senha = document.getElementById('senha').value.trim();
+
+        // Lógica para o modo DEMO
+        if (nome === 'demo' && senha === 'demo') {
+            jogadorConfig.tipo = 'DEMO';
+            jogadorConfig.nickname = 'Demonstração';
+            abrirAba('config2'); // Leva para a tela do comerciante
+            exibirAvisoDemo();
+        }
+        else if (senha === 'dev') {
+            jogadorConfig.tipo = 'DEVGUI'; jogadorConfig.nickname = 'Desenvolvedor'; abrirAba('painelDev');
+        } 
+        else if (senha === 'loja') { 
+            jogadorConfig.tipo = 'Comerciante'; jogadorConfig.nickname = 'Comerciante'; abrirAba('config2'); 
+        } 
+        else if (nome) { 
+            jogadorConfig.tipo = 'Jogador'; jogadorConfig.nickname = nome; abrirAba('jogos'); 
+        } 
+        else { 
+            alert('Por favor, digite seu nome para jogar.'); return; 
+        }
+    } else { // Na versão CLIENTE, só validamos o nome
+        if (nome) { jogadorConfig.tipo = 'Jogador'; jogadorConfig.nickname = nome; abrirAba('jogos'); }
+        else { alert('Por favor, digite seu nome para jogar.'); return; }
+    }
+    atualizarPerfilVisual();
+    salvarDados();
+  }
+  
+  function exibirAvisoDemo() {
+    document.getElementById('avisoDemo').style.display = 'block';
+  }
+
+  function atualizarPerfilVisual() {
+    const perfil = document.getElementById('perfilVisual');
+    if (jogadorConfig.tipo === 'Jogador' && jogadorConfig.nickname) { perfil.textContent = `🎮 Jogando como: ${jogadorConfig.nickname}`; perfil.style.display = 'block'; } 
+    else if (typeof PRELOADED_CONFIG === 'undefined' && jogadorConfig.tipo !== 'anonimo' && jogadorConfig.tipo !== 'Jogador') { perfil.textContent = `🔑 Logado como: ${jogadorConfig.tipo}`; perfil.style.display = 'block'; } 
+    else { perfil.style.display = 'none'; }
+  }
+
+  function aplicarConfiguracoesVisuais() {
+    const defaultLogo = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh2XPuXiJsszG17i6fxzPhgoDAuG379KNT0apLUvOM8fwKUvMcmkFsdfpv-FknrSvU00AoTPLL7VwhAYsEYSb_4c7DvQQyopmugO3S8SKlDNS9j8YflH2YGCBfxkW19M40w5ULl1HthIvBXLwWgj1swjvxkMdQbxR71jQLDOhEFGTb625N_koVX6PMbg9-0/s716/Clipped_image_20250916_133639.png";
+    document.getElementById('splashLogo').src = devConfig.splashLogo || lojaConfig.logo || defaultLogo;
+    document.getElementById('splashTitulo').textContent = devConfig.splashTitulo || lojaConfig.nome || 'MimoGame';
+    document.getElementById('splashSubtitulo').textContent = devConfig.splashSubtitulo || 'LABRIOLAG';
+    document.getElementById('contatoRodape').textContent = devConfig.contato || 'Pix@xmail.net';
+    document.getElementById('nomeRodape').textContent = lojaConfig.nome || devConfig.splashTitulo || 'MimoGame';
+    document.getElementById('logoRodape').src = lojaConfig.logo || devConfig.splashLogo || defaultLogo;
+    const temaAtivo = lojaConfig.tipo || devConfig.tema || 'game';
+    atualizarVisualLoja(temaAtivo);
+    atualizarBotaoWhatsapp();
+  }
+  
+  function atualizarBotaoWhatsapp() {
+      const whatsappBtn = document.getElementById('whatsappBtn');
+      if (lojaConfig.whatsapp) { const numeroLimpo = lojaConfig.whatsapp.replace(/\D/g, ''); whatsappBtn.href = `https://wa.me/55${numeroLimpo}`; whatsappBtn.style.display = 'inline-block'; } 
+      else { whatsappBtn.style.display = 'none'; }
+  }
+
+  function atualizarVisualLoja(tipo) {
+    const estilos = {
+      game: { cor: '#8A2BE2', slogan: "Sua diversão vale prêmios!" },
+      posto_gasolina: { cor: '#FFD700', slogan: "Abasteça e ganhe na hora!" },
+      dentista: { cor: '#00CED1', slogan: "Um sorriso perfeito é o seu prêmio!" },
+      marceneiro: { cor: '#8B4513', slogan: "Trabalho bem feito merece recompensa!" },
+      advocacia: { cor: '#000080', slogan: "Sua confiança tem valor!" },
+      saude: { cor: '#3CB371', slogan: "Cuidar de você é o nosso prêmio!" },
+      seguranca: { cor: '#2F4F4F', slogan: "Sua proteção é a nossa vitória!" },
+      balada: { cor: '#FF00FF', slogan: "A noite é uma criança e tem prêmios!" },
+      lanchonete: { cor: '#DC143C', slogan: "Seu lanche ficou mais divertido!" },
+      restaurante: { cor: '#A52A2A', slogan: "Saboreie sua vitória!" },
+      hotel: { cor: '#B8860B', slogan: "Sua estadia pode ser premiada!" },
+      pizzaria: { cor: '#b22222', slogan: "Jogue e ganhe pizza quentinha!" },
+      padaria: { cor: '#d2691e', slogan: "Jogue e leve pão fresco pra casa!" },
+      hamburgueria: { cor: '#8b4513', slogan: "Ganhe hambúrguer com diversão!" },
+      doceira: { cor: '#ff69b4', slogan: "Doces e jogos, a combinação perfeita!" },
+      acaitaria: { cor: '#800080', slogan: "Açaí gelado como prêmio!" },
+      sorveteria: { cor: '#4682b4', slogan: "Sorvete grátis pra quem vence!" }
+    };
+    const estilo = estilos[tipo] || estilos.game;
+    document.documentElement.style.setProperty('--cor-tema', estilo.cor);
+    document.getElementById('sloganRodape').textContent = lojaConfig.slogan || devConfig.slogan || estilo.slogan;
+  }
+
+  let cartaVirada = null;
+  function iniciarMemoria() {
+    const emojis = ['🍕','🍔','🍟','🌭','🍣','🍪','🍰','🍩'];
+    const cartas = [...emojis, ...emojis].sort(() => 0.5 - Math.random());
+    const tela = document.getElementById('telaJogo');
+    tela.innerHTML = '';
+    cartaVirada = null;
+    cartas.forEach(emoji => {
+      const div = document.createElement('div');
+      div.className = 'carta'; div.dataset.valor = emoji; div.textContent = '❓';
+      div.onclick = () => virarCarta(div);
+      tela.appendChild(div);
+    });
+  }
+  function virarCarta(carta) {
+    if (carta.classList.contains('virada') || carta.classList.contains('par')) return;
+    carta.textContent = carta.dataset.valor;
+    carta.classList.add('virada');
+    if (!cartaVirada) { cartaVirada = carta; } 
+    else {
+      if (cartaVirada.dataset.valor === carta.dataset.valor) { carta.classList.add('par'); cartaVirada.classList.add('par'); cartaVirada = null; verificarVitoria(); } 
+      else { setTimeout(() => { carta.textContent = '❓'; cartaVirada.textContent = '❓'; carta.classList.remove('virada'); cartaVirada.classList.remove('virada'); cartaVirada = null; }, 1000); }
+    }
+  }
+  function verificarVitoria() { if (document.querySelectorAll('.carta.par').length === 16) { mostrarRecompensa(); } }
+  function mostrarRecompensa() { document.getElementById('modalRecompensa').style.display = 'flex'; document.getElementById('textoRecompensa').textContent = lojaConfig.recompensa?.texto || "🎁 Parabéns! Você ganhou!"; }
+  function fecharModal(modalId) { document.getElementById('modal' + modalId.charAt(0).toUpperCase() + modalId.slice(1)).style.display = 'none'; }
+  function simularVitoria() { mostrarRecompensa(); }
+  
+  // --- FUNÇÕES QUE SÓ EXISTEM NA VERSÃO MASTER ---
+  if (typeof PRELOADED_CONFIG === 'undefined') {
+    function salvarConfig2(redirecionar = false) {
+        lojaConfig.nome = document.getElementById('nomeLoja').value;
+        lojaConfig.logo = document.getElementById('logoLoja').value;
+        lojaConfig.slogan = document.getElementById('sloganLoja').value;
+        lojaConfig.whatsapp = document.getElementById('whatsappLoja').value;
+        lojaConfig.tipo = document.getElementById('tipoLoja').value;
+        lojaConfig.recompensa = { texto: document.getElementById('premioTexto').value };
+        aplicarConfiguracoesVisuais();
+        salvarDados();
+        if(redirecionar) { alert('Configurações salvas para você!'); abrirAba('jogos'); }
+    }
+
+    function salvarConfigDev() {
+        devConfig.splashLogo = document.getElementById('devSplashLogo').value;
+        devConfig.splashTitulo = document.getElementById('devSplashTitulo').value;
+        devConfig.splashSubtitulo = document.getElementById('devSplashSubtitulo').value;
+        devConfig.slogan = document.getElementById('devSlogan').value;
+        devConfig.contato = document.getElementById('devContato').value;
+        devConfig.tema = document.getElementById('devTema').value;
+        aplicarConfiguracoesVisuais();
+        salvarDados();
+        alert('Configurações de DEV salvas!');
+        abrirAba('jogos'); 
+    }
+    
+    function visualizarConfiguracoes(tipo) {
+      let config = {};
+      if (tipo === 'comerciante') {
+        config = {
+          nome: document.getElementById('nomeLoja').value,
+          logo: document.getElementById('logoLoja').value,
+          slogan: document.getElementById('sloganLoja').value,
+          whatsapp: document.getElementById('whatsappLoja').value,
+          tipo: document.getElementById('tipoLoja').value,
+          recompensa: { texto: document.getElementById('premioTexto').value }
+        };
+      } else if (tipo === 'dev') {
+        config = {
+          splashLogo: document.getElementById('devSplashLogo').value,
+          splashTitulo: document.getElementById('devSplashTitulo').value,
+          splashSubtitulo: document.getElementById('devSplashSubtitulo').value,
+          slogan: document.getElementById('devSlogan').value,
+          contato: document.getElementById('devContato').value,
+          tema: document.getElementById('devTema').value
+        };
+      }
+      document.getElementById('textoVisualizacao').textContent = JSON.stringify(config, null, 2);
+      document.getElementById('modalVisualizacao').style.display = 'flex';
+    }
+    
+    function gerarArquivoConfigurado() {
+        // Impede a geração de arquivo no modo DEMO
+        if (jogadorConfig.tipo === 'DEMO') {
+            alert('A geração de arquivos está desabilitada no modo de demonstração. Por favor, adquira a versão completa para usar este recurso.');
+            return;
+        }
+
+        salvarConfig2(false); 
+        const configParaInjetar = { loja: lojaConfig, dev: devConfig };
+        const scriptInjetado = `<script>const PRELOADED_CONFIG = ${JSON.stringify(configParaInjetar, null, 2)};<\/script>`;
+        
+        let htmlAtual = document.documentElement.outerHTML;
+        
+        // Remove os painéis de admin e o botão de acesso
+        htmlAtual = htmlAtual.replace(/<section id="config2".*?<\/section>/s, '');
+        htmlAtual = htmlAtual.replace(/<section id="painelDev".*?<\/section>/s, '');
+        htmlAtual = htmlAtual.replace(/<button id="botaoMarcador".*?<\/button>/s, '');
+        htmlAtual = htmlAtual.replace(/<div id="marcadorPop".*?<\/div>/s, '');
+        htmlAtual = htmlAtual.replace(/<div id="avisoDemo".*?<\/div>/s, '');
+        
+        // Simplifica a tela de login
+        let loginSectionRegex = /<section id="login"[\s\S]*?<\/section>/;
+        let loginSectionMatch = htmlAtual.match(loginSectionRegex);
+        if (loginSectionMatch) {
+            let loginHtml = loginSectionMatch[0];
+            loginHtml = loginHtml.replace(/<input type="password".*?>/s, ''); // Remove senha
+            loginHtml = loginHtml.replace('Identifique-se para jogar', 'Qual é o seu nome?');
+            loginHtml = loginHtml.replace('Senha (para administradores)', '');
+            htmlAtual = htmlAtual.replace(loginSectionRegex, loginHtml);
+        }
+
+        const novoHtml = htmlAtual.replace('</head>', `${scriptInjetado}</head>`);
+        
+        // Cria e baixa o arquivo
+        const blob = new Blob([novoHtml], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const nomeDoArquivo = (lojaConfig.nome || 'MimoGame').replace(/[\s\/\\?%*:|"<>]/g, '_');
+        a.download = `MimoGame-${nomeDoArquivo}.html`;
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert(`Arquivo "${a.download}" gerado com sucesso! Compartilhe ESTE NOVO ARQUIVO com seus clientes.`);
+        abrirAba('jogos');
+    }
+
+    function preencherFormularios() {
+        document.getElementById('nomeLoja').value = lojaConfig.nome || '';
+        document.getElementById('logoLoja').value = lojaConfig.logo || '';
+        document.getElementById('sloganLoja').value = lojaConfig.slogan || '';
+        document.getElementById('whatsappLoja').value = lojaConfig.whatsapp || '';
+        document.getElementById('tipoLoja').value = lojaConfig.tipo || '';
+        document.getElementById('premioTexto').value = lojaConfig.recompensa?.texto || '';
+        document.getElementById('devSplashLogo').value = devConfig.splashLogo || '';
+        document.getElementById('devSplashTitulo').value = devConfig.splashTitulo || '';
+        document.getElementById('devSplashSubtitulo').value = devConfig.splashSubtitulo || '';
+        document.getElementById('devSlogan').value = devConfig.slogan || '';
+        document.getElementById('devContato').value = devConfig.contato || '';
+        document.getElementById('devTema').value = devConfig.tema || 'game';
+    }
+    
+    function salvarDados() { 
+        // Impede o salvamento permanente se o usuário for do tipo DEMO
+        if (jogadorConfig.tipo === 'DEMO') {
+            console.log("Modo DEMO: dados não serão salvos permanentemente.");
+            return;
+        }
+        localStorage.setItem('multiNegocio_jogador', JSON.stringify(jogadorConfig)); 
+        localStorage.setItem('multiNegocio_loja', JSON.stringify(lojaConfig)); 
+        localStorage.setItem('multiNegocio_dev', JSON.stringify(devConfig)); 
+    }
+    function carregarDados() {
+        jogadorConfig = JSON.parse(localStorage.getItem('multiNegocio_jogador')) || { tipo: 'anonimo' };
+        lojaConfig = JSON.parse(localStorage.getItem('multiNegocio_loja')) || {};
+        devConfig = JSON.parse(localStorage.getItem('multiNegocio_dev')) || {};
+        atualizarPerfilVisual();
+    }
+    function resetarDados() { localStorage.clear(); window.location.reload(); }
+  } else {
+      // Funções vazias ou simplificadas para a versão do cliente, para não dar erro
+      function preencherFormularios() {}
+      function salvarDados() {} // Cliente não salva nada no localStorage
+      function carregarDados() {}
+      function resetarDados() { window.location.reload(); }
+      function visualizarConfiguracoes() {}
+      function gerarArquivoConfigurado() {}
+      function salvarConfig2() {}
+      function salvarConfigDev() {}
+  }
+</script>
+</body>
+</html>
