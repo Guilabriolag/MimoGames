@@ -73,40 +73,40 @@
       border-radius: 20px;
       font-weight: bold;
     }
-    #modalRecompensa {
-      display: none; position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: #000000aa;
-      justify-content: center; align-items: center;
-      z-index: 999;
+    .modal {
+        display: none; position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: #000000aa;
+        justify-content: center; align-items: center;
+        z-index: 10002;
     }
-    #modalRecompensa div {
-      background: white; padding: 20px;
-      border-radius: 12px; text-align: center;
-      max-width: 300px;
+    .modal-conteudo {
+        background: white; padding: 25px;
+        border-radius: 12px; text-align: center;
+        max-width: 350px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-    /* Estilo do novo modal de pré-visualização */
-    #modalVisualizacao {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #000000aa;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
+    .modal-conteudo button { margin-top: 10px; }
+    /* Estilos do Tour */
+    .tour-passo-conteudo { text-align: center; max-width: 90%; }
+    .tour-balao {
+      position: absolute; background: white; border: 1px solid #ccc;
+      padding: 15px; border-radius: 10px; max-width: 250px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000;
+      animation: fadeIn 0.3s ease-out;
     }
-    #modalVisualizacao div {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 80%;
-      max-height: 80%;
-      overflow-y: auto;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    .tour-balao h4 { margin-top: 0; color: var(--cor-tema); }
+    .tour-balao::after {
+      content: ''; position: absolute; width: 0; height: 0;
+      border-left: 10px solid transparent; border-right: 10px solid transparent;
+      border-top: 10px solid #fff; bottom: -10px; left: 50%; transform: translateX(-50%);
     }
+    .tour-highlight {
+      position: relative; z-index: 10001;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+      border-radius: 8px;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     .marcador-pop {
       position: fixed; bottom: 80px; right: 20px;
       background: #fff; border: 1px solid #ddd;
@@ -156,6 +156,21 @@
       padding: 10px; font-weight: bold; z-index: 1000;
       display: none;
     }
+    .tour-botoes-navegacao {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .tour-botoes-navegacao button {
+        width: auto;
+        flex-grow: 1;
+        margin: 0;
+        padding: 10px 15px;
+    }
+    #btnTourPular {
+      background-color: #f44336;
+    }
   </style>
 </head>
 <body>
@@ -194,6 +209,7 @@
 
 <section id="config2" class="aba">
   <h3>Configurações do Comerciante</h3>
+  <button onclick="mostrarModalTrocaSenha()">🔑 Trocar Senha</button>
   <label for="nomeLoja">Nome do Negócio:</label>
   <input type="text" id="nomeLoja" placeholder="Nome do seu negócio" />
   <label for="logoLoja">URL da sua Logo:</label>
@@ -270,15 +286,40 @@
   <button onclick="resetarDados()">🧹 Resetar Dados Salvos</button>
 </section>
 
-<div id="modalRecompensa" style="display:none;">
-  <div><h3>🎉 Você ganhou!</h3><p id="textoRecompensa"></p><button onclick="fecharModal('recompensa')">Fechar</button></div>
+<div id="modalRecompensa" class="modal">
+  <div class="modal-conteudo"><h3>🎉 Você ganhou!</h3><p id="textoRecompensa"></p><button onclick="fecharModal('recompensa')">Fechar</button></div>
 </div>
 
-<div id="modalVisualizacao" style="display:none;">
-    <div>
+<div id="modalVisualizacao" class="modal">
+    <div class="modal-conteudo">
         <h3>Pré-visualização das Configurações</h3>
         <pre id="textoVisualizacao"></pre>
         <button onclick="fecharModal('visualizacao')">Fechar</button>
+    </div>
+</div>
+
+<div id="modalTrocaSenha" class="modal">
+    <div class="modal-conteudo">
+        <h3>Trocar Senha</h3>
+        <p>Por favor, crie uma senha pessoal para seu acesso.</p>
+        <input type="password" id="senhaAtual" placeholder="Senha Atual (chave de acesso)" />
+        <input type="password" id="novaSenha" placeholder="Nova Senha" />
+        <input type="password" id="confirmaNovaSenha" placeholder="Confirme a Nova Senha" />
+        <button onclick="trocarSenha()">Trocar Senha</button>
+        <button id="btnFecharTrocaSenha" onclick="fecharModal('trocaSenha')">Cancelar</button>
+        <p id="msgErroTrocaSenha" style="color: red;"></p>
+    </div>
+</div>
+
+<div id="modalTour" class="modal">
+    <div class="modal-conteudo tour-passo-conteudo">
+        <h4 id="tourTitulo"></h4>
+        <p id="tourTexto"></p>
+        <div class="tour-botoes-navegacao">
+            <button id="btnTourVoltar">Voltar</button>
+            <button id="btnTour">Próximo</button>
+            <button id="btnTourPular">Pular Tour</button>
+        </div>
     </div>
 </div>
 
@@ -291,15 +332,25 @@
 </footer>
 
 <script>
-  let jogadorConfig = { tipo: 'anonimo' };
+  let jogadorConfig = { tipo: 'anonimo', nickname: '', tourCompleto: false };
   let lojaConfig = {};
   let devConfig = {};
+  let clientesPagantes = [
+      { nome: 'Loja Exemplo', senha: 'abc123xyz', senhaTrocada: false }
+  ];
+  let tourPassoAtual = -1;
+
+  const tourSteps = [
+    { id: 'nomeLoja', titulo: '1. Nome do Negócio', texto: 'Aqui você define o nome do seu negócio. Ele aparecerá na tela inicial e no rodapé do jogo.' },
+    { id: 'tipoLoja', titulo: '2. Estilo do Negócio', texto: 'Escolha um tema. As cores e a frase padrão serão ajustadas para combinar com seu negócio.' },
+    { id: 'premioTexto', titulo: '3. O seu Prêmio', texto: 'Escreva a mensagem que aparecerá quando o jogador vencer. Ex: "Um café grátis!"' },
+    { id: 'btnGerarArquivo', titulo: '4. Gerar Arquivo', texto: 'Após configurar tudo, clique aqui para salvar e baixar o arquivo HTML que você deve enviar ao seu cliente.' },
+  ];
 
   document.addEventListener('DOMContentLoaded', () => {
     if (typeof PRELOADED_CONFIG === 'undefined') {
-        carregarDados(); // Versão MASTER: carrega do localStorage
+        carregarDados();
     } else {
-        // Versão CLIENTE: carrega as configs injetadas
         lojaConfig = PRELOADED_CONFIG.loja || {};
         devConfig = PRELOADED_CONFIG.dev || {};
         jogadorConfig.tipo = 'Jogador';
@@ -319,45 +370,151 @@
 
   function validarLogin() {
     const nome = document.getElementById('nome').value.trim();
-    // A lógica de senha só existe na versão MASTER
-    if (typeof PRELOADED_CONFIG === 'undefined') {
-        const senha = document.getElementById('senha').value.trim();
+    const senha = document.getElementById('senha').value.trim();
+    document.getElementById('msgErroTrocaSenha').textContent = '';
 
-        // Lógica para o modo DEMO
-        if (nome === 'demo' && senha === 'demo') {
-            jogadorConfig.tipo = 'DEMO';
-            jogadorConfig.nickname = 'Demonstração';
-            abrirAba('config2'); // Leva para a tela do comerciante
-            exibirAvisoDemo();
-        }
-        else if (senha === 'dev') {
-            jogadorConfig.tipo = 'DEVGUI'; jogadorConfig.nickname = 'Desenvolvedor'; abrirAba('painelDev');
-        } 
-        else if (senha === 'loja') { 
-            jogadorConfig.tipo = 'Comerciante'; jogadorConfig.nickname = 'Comerciante'; abrirAba('config2'); 
-        } 
-        else if (nome) { 
-            jogadorConfig.tipo = 'Jogador'; jogadorConfig.nickname = nome; abrirAba('jogos'); 
-        } 
-        else { 
-            alert('Por favor, digite seu nome para jogar.'); return; 
-        }
-    } else { // Na versão CLIENTE, só validamos o nome
-        if (nome) { jogadorConfig.tipo = 'Jogador'; jogadorConfig.nickname = nome; abrirAba('jogos'); }
-        else { alert('Por favor, digite seu nome para jogar.'); return; }
+    if (nome === 'DEVGUI' && senha === 'dev') {
+        jogadorConfig.tipo = 'DEVGUI';
+        jogadorConfig.nickname = 'Desenvolvedor';
+        abrirAba('painelDev');
+        exibirAvisoDemo(false);
+        return;
     }
-    atualizarPerfilVisual();
-    salvarDados();
+    
+    if (nome === 'demo' && senha === 'demo') {
+        jogadorConfig.tipo = 'DEMO';
+        jogadorConfig.nickname = 'Demonstração';
+        abrirAba('config2');
+        exibirAvisoDemo(true);
+        document.getElementById('btnGerarArquivo').onclick = function() {
+            alert('A geração de arquivos está desabilitada na versão de demonstração. Por favor, adquira a versão completa para usar este recurso.');
+        };
+        return;
+    }
+
+    if (senha === 'loja') {
+        alert('Modo de teste! O botão "Gerar Arquivo" irá direcionar para a página de compra.');
+        jogadorConfig.tipo = 'Comerciante Teste';
+        jogadorConfig.nickname = nome;
+        document.getElementById('btnGerarArquivo').onclick = function() {
+            window.location.href = 'manual.html';
+        };
+        abrirAba('config2');
+        exibirAvisoDemo(true);
+        return;
+    }
+
+    const clienteEncontrado = clientesPagantes.find(cliente => 
+        cliente.nome.toLowerCase() === nome.toLowerCase() && cliente.senha === senha
+    );
+
+    if (clienteEncontrado) {
+        jogadorConfig.tipo = 'Comerciante Pagante';
+        jogadorConfig.nickname = nome;
+        exibirAvisoDemo(false);
+        document.getElementById('btnGerarArquivo').onclick = gerarArquivoConfigurado;
+
+        if (!clienteEncontrado.senhaTrocada) {
+            document.getElementById('btnFecharTrocaSenha').style.display = 'none';
+            mostrarModal('trocaSenha');
+            return;
+        }
+        
+        abrirAba('config2');
+        // Inicia o tour se for a primeira vez do cliente
+        if (!jogadorConfig.tourCompleto) {
+            iniciarTour();
+        }
+        return;
+    }
+    
+    if (nome) {
+        jogadorConfig.tipo = 'Jogador';
+        jogadorConfig.nickname = nome;
+        abrirAba('jogos');
+        exibirAvisoDemo(false);
+        return;
+    }
+
+    alert('Usuário ou senha inválidos.');
   }
-  
-  function exibirAvisoDemo() {
-    document.getElementById('avisoDemo').style.display = 'block';
+
+  function mostrarModal(modalId) {
+    document.getElementById('modal' + modalId.charAt(0).toUpperCase() + modalId.slice(1)).style.display = 'flex';
+  }
+
+  function fecharModal(modalId) {
+    document.getElementById('modal' + modalId.charAt(0).toUpperCase() + modalId.slice(1)).style.display = 'none';
+    if(modalId === 'trocaSenha') {
+        document.getElementById('senhaAtual').value = '';
+        document.getElementById('novaSenha').value = '';
+        document.getElementById('confirmaNovaSenha').value = '';
+        document.getElementById('msgErroTrocaSenha').textContent = '';
+    }
+  }
+
+  function mostrarModalTrocaSenha() {
+      const clienteLogado = clientesPagantes.find(c => c.nome.toLowerCase() === jogadorConfig.nickname.toLowerCase());
+      if (clienteLogado) {
+          document.getElementById('senhaAtual').value = clienteLogado.senha;
+          document.getElementById('btnFecharTrocaSenha').style.display = 'block';
+          mostrarModal('trocaSenha');
+      } else {
+          alert("Não é possível trocar a senha. Por favor, faça o login novamente.");
+          abrirAba('login');
+      }
+  }
+
+  function trocarSenha() {
+    const senhaAtual = document.getElementById('senhaAtual').value;
+    const novaSenha = document.getElementById('novaSenha').value;
+    const confirmaNovaSenha = document.getElementById('confirmaNovaSenha').value;
+    const msgErro = document.getElementById('msgErroTrocaSenha');
+    
+    msgErro.textContent = '';
+    
+    const clienteLogado = clientesPagantes.find(c => c.nome.toLowerCase() === jogadorConfig.nickname.toLowerCase());
+
+    if (!clienteLogado || senhaAtual !== clienteLogado.senha) {
+        msgErro.textContent = 'A senha atual está incorreta.';
+        return;
+    }
+    
+    if (novaSenha.length < 4) {
+        msgErro.textContent = 'A nova senha deve ter no mínimo 4 caracteres.';
+        return;
+    }
+
+    if (novaSenha !== confirmaNovaSenha) {
+        msgErro.textContent = 'A nova senha e a confirmação não coincidem.';
+        return;
+    }
+
+    if (novaSenha === senhaAtual) {
+        msgErro.textContent = 'A nova senha não pode ser igual à senha atual.';
+        return;
+    }
+    
+    clienteLogado.senha = novaSenha;
+    clienteLogado.senhaTrocada = true;
+    salvarDados();
+    fecharModal('trocaSenha');
+    alert('Senha alterada com sucesso! Você já pode usar a nova senha para entrar.');
+    abrirAba('config2');
+  }
+
+  function exibirAvisoDemo(exibir) {
+    if (exibir) {
+      document.getElementById('avisoDemo').style.display = 'block';
+    } else {
+      document.getElementById('avisoDemo').style.display = 'none';
+    }
   }
 
   function atualizarPerfilVisual() {
     const perfil = document.getElementById('perfilVisual');
     if (jogadorConfig.tipo === 'Jogador' && jogadorConfig.nickname) { perfil.textContent = `🎮 Jogando como: ${jogadorConfig.nickname}`; perfil.style.display = 'block'; } 
-    else if (typeof PRELOADED_CONFIG === 'undefined' && jogadorConfig.tipo !== 'anonimo' && jogadorConfig.tipo !== 'Jogador') { perfil.textContent = `🔑 Logado como: ${jogadorConfig.tipo}`; perfil.style.display = 'block'; } 
+    else if (jogadorConfig.tipo !== 'anonimo' && jogadorConfig.tipo !== 'Jogador') { perfil.textContent = `🔑 Logado como: ${jogadorConfig.tipo}`; perfil.style.display = 'block'; } 
     else { perfil.style.display = 'none'; }
   }
 
@@ -430,9 +587,7 @@
     }
   }
   function verificarVitoria() { if (document.querySelectorAll('.carta.par').length === 16) { mostrarRecompensa(); } }
-  function mostrarRecompensa() { document.getElementById('modalRecompensa').style.display = 'flex'; document.getElementById('textoRecompensa').textContent = lojaConfig.recompensa?.texto || "🎁 Parabéns! Você ganhou!"; }
-  function fecharModal(modalId) { document.getElementById('modal' + modalId.charAt(0).toUpperCase() + modalId.slice(1)).style.display = 'none'; }
-  function simularVitoria() { mostrarRecompensa(); }
+  function mostrarRecompensa() { mostrarModal('recompensa'); document.getElementById('textoRecompensa').textContent = lojaConfig.recompensa?.texto || "🎁 Parabéns! Você ganhou!"; }
   
   // --- FUNÇÕES QUE SÓ EXISTEM NA VERSÃO MASTER ---
   if (typeof PRELOADED_CONFIG === 'undefined') {
@@ -483,13 +638,12 @@
         };
       }
       document.getElementById('textoVisualizacao').textContent = JSON.stringify(config, null, 2);
-      document.getElementById('modalVisualizacao').style.display = 'flex';
+      mostrarModal('visualizacao');
     }
     
     function gerarArquivoConfigurado() {
-        // Impede a geração de arquivo no modo DEMO
-        if (jogadorConfig.tipo === 'DEMO') {
-            alert('A geração de arquivos está desabilitada no modo de demonstração. Por favor, adquira a versão completa para usar este recurso.');
+        if (jogadorConfig.tipo !== 'Comerciante Pagante') {
+            alert('A geração de arquivos está habilitada apenas para clientes pagantes. Por favor, acesse com sua chave de acesso.');
             return;
         }
 
@@ -499,27 +653,25 @@
         
         let htmlAtual = document.documentElement.outerHTML;
         
-        // Remove os painéis de admin e o botão de acesso
         htmlAtual = htmlAtual.replace(/<section id="config2".*?<\/section>/s, '');
         htmlAtual = htmlAtual.replace(/<section id="painelDev".*?<\/section>/s, '');
         htmlAtual = htmlAtual.replace(/<button id="botaoMarcador".*?<\/button>/s, '');
         htmlAtual = htmlAtual.replace(/<div id="marcadorPop".*?<\/div>/s, '');
         htmlAtual = htmlAtual.replace(/<div id="avisoDemo".*?<\/div>/s, '');
+        htmlAtual = htmlAtual.replace(/<div id="modalTour".*?<\/div>/s, '');
         
-        // Simplifica a tela de login
         let loginSectionRegex = /<section id="login"[\s\S]*?<\/section>/;
         let loginSectionMatch = htmlAtual.match(loginSectionRegex);
         if (loginSectionMatch) {
             let loginHtml = loginSectionMatch[0];
-            loginHtml = loginHtml.replace(/<input type="password".*?>/s, ''); // Remove senha
+            loginHtml = loginHtml.replace(/<input type="password".*?>/s, '');
             loginHtml = loginHtml.replace('Identifique-se para jogar', 'Qual é o seu nome?');
             loginHtml = loginHtml.replace('Senha (para administradores)', '');
             htmlAtual = htmlAtual.replace(loginSectionRegex, loginHtml);
         }
-
+        
         const novoHtml = htmlAtual.replace('</head>', `${scriptInjetado}</head>`);
         
-        // Cria e baixa o arquivo
         const blob = new Blob([novoHtml], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -531,7 +683,8 @@
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         alert(`Arquivo "${a.download}" gerado com sucesso! Compartilhe ESTE NOVO ARQUIVO com seus clientes.`);
-        abrirAba('jogos');
+        // Redireciona o usuário de volta para a aba de configurações
+        abrirAba('config2');
     }
 
     function preencherFormularios() {
@@ -550,26 +703,107 @@
     }
     
     function salvarDados() { 
-        // Impede o salvamento permanente se o usuário for do tipo DEMO
-        if (jogadorConfig.tipo === 'DEMO') {
-            console.log("Modo DEMO: dados não serão salvos permanentemente.");
+        if (jogadorConfig.tipo === 'DEMO' || jogadorConfig.tipo === 'Comerciante Teste') {
             return;
         }
         localStorage.setItem('multiNegocio_jogador', JSON.stringify(jogadorConfig)); 
         localStorage.setItem('multiNegocio_loja', JSON.stringify(lojaConfig)); 
         localStorage.setItem('multiNegocio_dev', JSON.stringify(devConfig)); 
+        localStorage.setItem('multiNegocio_clientes', JSON.stringify(clientesPagantes));
     }
+
     function carregarDados() {
-        jogadorConfig = JSON.parse(localStorage.getItem('multiNegocio_jogador')) || { tipo: 'anonimo' };
+        jogadorConfig = JSON.parse(localStorage.getItem('multiNegocio_jogador')) || { tipo: 'anonimo', tourCompleto: false };
         lojaConfig = JSON.parse(localStorage.getItem('multiNegocio_loja')) || {};
         devConfig = JSON.parse(localStorage.getItem('multiNegocio_dev')) || {};
+        const clientesSalvos = JSON.parse(localStorage.getItem('multiNegocio_clientes'));
+        if (clientesSalvos) {
+            clientesPagantes = clientesSalvos;
+        }
         atualizarPerfilVisual();
     }
+    
     function resetarDados() { localStorage.clear(); window.location.reload(); }
+
+    function iniciarTour() {
+      tourPassoAtual = -1; // -1 indica o estado de boas-vindas
+      document.getElementById('tourTitulo').textContent = 'Bem-vindo(a) ao seu Painel!';
+      document.getElementById('tourTexto').innerHTML = 'Vamos fazer um tour rápido para você aprender a personalizar seu jogo.<br><br>Clique em **Iniciar Tour** para continuar.';
+      
+      document.getElementById('btnTour').textContent = 'Iniciar Tour';
+      document.getElementById('btnTourVoltar').style.display = 'none';
+      document.getElementById('btnTourPular').style.display = 'none';
+      
+      mostrarModal('tour');
+    }
+
+    function proximoTourPasso() {
+        // Remove o destaque do passo anterior
+        document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+        
+        // Finaliza se for o último passo
+        if (tourPassoAtual >= tourSteps.length) {
+            finalizarTour();
+            return;
+        }
+        
+        const passo = tourSteps[tourPassoAtual];
+        const elemento = document.getElementById(passo.id);
+        if (elemento) {
+            elemento.classList.add('tour-highlight');
+            elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            document.getElementById('tourTitulo').textContent = passo.titulo;
+            document.getElementById('tourTexto').innerHTML = passo.texto + '<br><br>' +
+                                                              '**Próximo:** Avança para a próxima etapa.<br>' +
+                                                              '**Voltar:** Retorna para a etapa anterior.<br>' +
+                                                              '**Pular Tour:** Encerra o tour a qualquer momento.';
+            
+            document.getElementById('btnTourPular').style.display = 'block';
+
+            // Controla a visibilidade dos botões
+            if (tourPassoAtual > 0) {
+                document.getElementById('btnTourVoltar').style.display = 'block';
+            } else {
+                document.getElementById('btnTourVoltar').style.display = 'none';
+            }
+            if (tourPassoAtual === tourSteps.length - 1) {
+                document.getElementById('btnTour').textContent = 'Finalizar';
+            } else {
+                document.getElementById('btnTour').textContent = 'Próximo';
+            }
+        }
+    }
+
+    function voltarTourPasso() {
+      if (tourPassoAtual > 0) {
+        tourPassoAtual--;
+        proximoTourPasso();
+      }
+    }
+    
+    document.getElementById('btnTour').addEventListener('click', () => {
+      tourPassoAtual++;
+      if (tourPassoAtual >= tourSteps.length) {
+          finalizarTour();
+      } else {
+          proximoTourPasso();
+      }
+    });
+
+    document.getElementById('btnTourVoltar').addEventListener('click', voltarTourPasso);
+    document.getElementById('btnTourPular').addEventListener('click', finalizarTour);
+
+    function finalizarTour() {
+      document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+      fecharModal('tour');
+      jogadorConfig.tourCompleto = true;
+      salvarDados();
+    }
+
   } else {
-      // Funções vazias ou simplificadas para a versão do cliente, para não dar erro
       function preencherFormularios() {}
-      function salvarDados() {} // Cliente não salva nada no localStorage
+      function salvarDados() {}
       function carregarDados() {}
       function resetarDados() { window.location.reload(); }
       function visualizarConfiguracoes() {}
