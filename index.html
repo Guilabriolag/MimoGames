@@ -150,6 +150,69 @@
       top: 0;
       left: 0;
     }
+
+    /* Estilos do Pop-up */
+    .modal {
+      display: none; /* Inicia oculto */
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(5px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      position: relative;
+      animation: slideInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .modal-content .close-btn {
+      color: #aaa;
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .modal-content .close-btn:hover,
+    .modal-content .close-btn:focus {
+      color: var(--cor-secundaria);
+    }
+    
+    .modal-content h3 {
+        font-family: 'Montserrat', sans-serif;
+        color: var(--cor-principal);
+        font-size: 2rem;
+        margin-top: 0;
+    }
+
+    .modal-content p {
+        font-size: 1.1rem;
+        color: #555;
+    }
+
+    .modal-content .oferta {
+        font-weight: bold;
+        color: var(--cor-secundaria);
+        font-size: 1.5rem;
+        margin: 20px 0;
+    }
   </style>
 </head>
 <body>
@@ -196,6 +259,32 @@
       <p>&copy; 2025 MimoGames. Todos os direitos reservados.</p>
     </div>
   </footer>
+
+  <div id="promoModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close-btn" onclick="fecharModal()">&times;</span>
+      <h3>Atenção Comerciante!</h3>
+      <p>Teste a versão DEMO ou adquira agora a versão completa e profissional para seu negócio:</p>
+      <p class="oferta">De R$ 49,00 por apenas R$ 4,90!</p>
+      <a href="https://mpago.la/1V72ZPM" target="_blank" class="btn" style="background: var(--cor-secundaria); color: white;">Comprar Versão PRO</a>
+    </div>
+  </div>
+
+  <script>
+    // Lógica para exibir e fechar o modal
+    function abrirModal() {
+        document.getElementById('promoModal').style.display = 'flex';
+    }
+
+    function fecharModal() {
+        document.getElementById('promoModal').style.display = 'none';
+    }
+
+    // Exibir o modal após 3 segundos
+    window.addEventListener('load', () => {
+        setTimeout(abrirModal, 3000);
+    });
+  </script>
 
 </body>
 </html>
