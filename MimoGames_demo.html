@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arcade MultiNegócio DEMO</title>
+  <style>
+    :root { --cor-tema: #b22222; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0; padding: 20px;
+      background: #fdfaf6;
+      color: #333;
+      font-size: 16px;
+      transition: background 0.3s ease;
+    }
+
+    input, select, button {
+      width: 100%; font-size: 16px;
+      margin: 10px 0; padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+    }
+    button {
+      background-color: var(--cor-tema);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    section.aba { display: none; padding: 15px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    section.aba.active { display: block; }
+    h3 { color: var(--cor-tema); }
+
+    #telaJogo {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px; margin-top: 20px;
+    }
+
+    .carta {
+      font-size: 32px; background: #eee;
+      padding: 20px; text-align: center;
+      border-radius: 10px; user-select: none;
+      cursor: pointer;
+    }
+
+    #perfilVisual {
+      text-align: center; font-weight: bold;
+      margin-bottom: 10px; padding: 10px;
+      background-color: #f0f0f0; border-radius: 8px;
+    }
+
+    footer {
+      background: var(--cor-tema); color: white;
+      padding: 20px; text-align: center;
+      font-size: 14px; margin-top: 30px;
+      border-radius: 12px 12px 0 0;
+    }
+    #whatsappBtn {
+      display: none; /* Inicia oculto */
+      margin-top: 15px; padding: 10px 20px;
+      background-color: #25D366;
+      color: white;
+      text-decoration: none;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+
+    .modal-aviso {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #000000aa; justify-content: center; align-items: center; z-index: 1001;
+    }
+    .modal-aviso-conteudo {
+      background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px;
+    }
+    .modal-aviso-conteudo h3 { color: #f5a623; }
+
+    #modalRecompensa {
+      display: none; position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #000000aa;
+      justify-content: center; align-items: center;
+      z-index: 999;
+    }
+
+    #modalRecompensa div {
+      background: white; padding: 20px;
+      border-radius: 12px; text-align: center;
+      max-width: 300px;
+    }
+
+    .marcador-pop {
+      position: fixed; bottom: 80px; right: 20px;
+      background: #fff; border: 1px solid #ddd;
+      border-radius: 12px; padding: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 999; width: 220px;
+      display: none;
+    }
+
+    .marcador-pop h4 { color: var(--cor-tema); text-align: center; margin: 5px 0 15px 0; }
+    .marcador-pop button {
+      width: 100%; margin: 5px 0; padding: 10px;
+      font-size: 14px; border-radius: 6px;
+      background: #f5f5f5; color: #333;
+      text-align: left;
+    }
+     .marcador-pop button:hover { background: #e0e0e0; }
+    .marcador-pop .btn-fechar { background: #eee; }
+
+    #botaoMarcador {
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--cor-tema); color: white;
+      border: none; width: 60px; height: 60px;
+      border-radius: 50%; font-size: 28px;
+      z-index: 998; display: none;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .splash {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #fff8f0;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      z-index: 1000;
+      animation: fadeOut 2s ease forwards;
+      animation-delay: 2.5s;
+    }
+    .splash img { width: 120px; border-radius: 20px; margin-bottom: 15px; }
+    .splash h1 { color: var(--cor-tema); }
+    @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+  </style>
+</head>
+<body>
+
+<div id="splash" class="splash">
+  <img id="splashLogo" src="https://via.placeholder.com/120" alt="Logo" />
+  <h1 id="splashTitulo">Arcade MultiNegócio</h1>
+  <p id="splashSubtitulo">Carregando diversão... 🎮</p>
+</div>
+
+<div id="modalAviso" class="modal-aviso">
+    <div class="modal-aviso-conteudo">
+        <h3>Atenção: Versão DEMO</h3>
+        <p>Você está usando a versão de demonstração do MimoGames.</p>
+        <p>Você poderá configurar seu negócio e jogar, mas o download final é limitado.</p>
+        <button onclick="iniciarTutorial()">OK, Entendi!</button>
+    </div>
+</div>
+
+<div id="modalTutorial" class="modal-aviso">
+    <div class="modal-aviso-conteudo">
+        <h3>Tutorial Rápido</h3>
+        <p>1. Para começar a configurar, vá em "Acessar / Login".</p>
+        <p>2. Use o **Nome** do seu negócio e a senha **demo** para entrar como comerciante.</p>
+        <p>3. Preencha as configurações da sua loja.</p>
+        <p>4. Jogue o "Jogo da Memória" para testar.</p>
+        <button onclick="fecharTutorial()">Vamos Lá!</button>
+    </div>
+</div>
+
+
+<div id="marcadorPop" class="marcador-pop">
+  <h4>Menu Principal</h4>
+  <button onclick="abrirAba('jogos')">🎮 Jogos</button>
+  <button onclick="abrirAba('login')">👤 Acessar / Login</button>
+  <button onclick="minimizarMarcador()" class="btn-fechar">🔽 Minimizar</button>
+</div>
+
+<button id="botaoMarcador" onclick="mostrarMarcador()">⚙️</button>
+
+<section id="login" class="aba">
+  <h3 id="loginTitulo">Identifique-se para jogar</h3>
+  <input type="text" id="nome" placeholder="Digite seu nome" />
+  <input type="password" id="senha" placeholder="Senha (para administradores)" />
+  <button onclick="validarLogin()">Entrar</button>
+</section>
+
+<div id="perfilVisual" style="display:none;"></div>
+
+<section id="jogos" class="aba">
+  <h3>Jogo da Memória</h3>
+  <button onclick="iniciarMemoria()">Iniciar Jogo</button>
+  <div id="telaJogo"></div>
+</section>
+
+<section id="config2" class="aba">
+  <h3>Configurações do Comerciante</h3>
+  <label for="nomeLoja">Nome do Negócio:</label>
+  <input type="text" id="nomeLoja" placeholder="Nome do seu negócio" />
+  <label for="logoLoja">URL da sua Logo:</label>
+  <input type="url" id="logoLoja" placeholder="https://..." />
+  <label for="sloganLoja">Slogan (frase no rodapé):</label>
+  <input type="text" id="sloganLoja" placeholder="Ex: A melhor pizza da cidade!" />
+  <label for="whatsappLoja">Nº de WhatsApp (com DDD):</label>
+  <input type="tel" id="whatsappLoja" placeholder="Ex: 11987654321" />
+
+  <label for="tipoLoja">Estilo do Negócio (define o tema):</label>
+  <select id="tipoLoja">
+    <option value="pizzaria">🍕 Pizzaria</option>
+    <option value="padaria">🍞 Padaria</option>
+    <option value="hamburgueria">🍔 Hamburgueria</option>
+    <option value="doceira">🍬 Doceira</option>
+    <option value="acaitaria">🍧 Açaitaria</option>
+    <option value="sorveteria">🍨 Sorveteria</option>
+    <option value="japones">🍣 Japonês</option>
+    <option value="cafeteria">☕ Cafeteria</option>
+  </select>
+  
+  <label for="premioTexto">Texto do Prêmio:</label>
+  <input type="text" id="premioTexto" placeholder="Ex: Um café grátis!" />
+  <button onclick="salvarConfig2()">Salvar Configurações</button>
+  
+  <hr style="margin: 20px 0;">
+  
+  <h4>Versão DEMO</h4>
+  <p>Você pode gerar 2 downloads de teste.</p>
+  <button onclick="gerarDownloadDemo()">Download do Jogo</button>
+</section>
+
+<section id="painelDev" class="aba">
+  <h3>🧪 Painel de Controle DEVGUI</h3>
+  <h4>Personalização da Tela de Splash e Rodapé</h4>
+  <label>URL da Logo (Splash):</label>
+  <input id="devSplashLogo" placeholder="URL da logo na splash" />
+  <label>Título (Splash):</label>
+  <input id="devSplashTitulo" placeholder="Título na splash" />
+  <label>Subtítulo (Splash):</label>
+  <input id="devSplashSubtitulo" placeholder="Subtítulo na splash" />
+  <label>Contato (Rodapé):</label>
+  <input id="devContato" placeholder="Telefone ou endereço no rodapé" />
+  <button onclick="salvarConfigDev()">Aplicar Customizações</button>
+  
+  <h4>Ferramentas de Teste</h4>
+  <button onclick="simularVitoria()">Simular Vitória</button>
+  <button onclick="resetarDados()">🧹 Resetar Dados Salvos</button>
+</section>
+
+<div id="modalRecompensa" style="display:none;">
+  <div>
+    <h3>🎉 Você ganhou!</h3>
+    <p id="textoRecompensa"></p>
+    <button onclick="fecharModal()">Fechar</button>
+  </div>
+</div>
+
+<footer>
+  <img id="logoRodape" src="https://via.placeholder.com/80" alt="Logo" style="max-width:80px; border-radius:8px;" />
+  <h4 id="nomeRodape">Nome do Negócio</h4>
+  <p id="sloganRodape">Jogue e ganhe prêmios deliciosos!</p>
+  <div id="contatoRodape" style="margin-top:10px;">📍 Local • ☎️ (00) 00000-0000</div>
+  <a id="whatsappBtn" href="#" target="_blank">📲 Fale Conosco no WhatsApp</a>
+</footer>
+
+<script>
+  // --- VARIÁVEIS GLOBAIS ---
+  let jogadorConfig = { tipo: 'anonimo' };
+  let lojaConfig = {};
+  let devConfig = {};
+
+  // --- INICIALIZAÇÃO DA PÁGINA ---
+  document.addEventListener('DOMContentLoaded', () => {
+    carregarDados();
+    preencherFormularios();
+    aplicarConfiguracoesVisuais();
+    
+    // Atraso para a splash screen
+    setTimeout(() => {
+      document.getElementById('splash').style.display = 'none';
+      document.getElementById('modalAviso').style.display = 'flex';
+    }, 3000);
+  });
+  
+  // --- FUNÇÕES DE NAVEGAÇÃO DOS MODAIS ---
+  function iniciarTutorial() {
+      document.getElementById('modalAviso').style.display = 'none';
+      document.getElementById('modalTutorial').style.display = 'flex';
+  }
+
+  function fecharTutorial() {
+      document.getElementById('modalTutorial').style.display = 'none';
+      abrirAba('jogos');
+      document.getElementById('botaoMarcador').style.display = 'block';
+  }
+
+
+  // --- LÓGICA DO MENU E NAVEGAÇÃO ---
+  function mostrarMarcador() {
+    document.getElementById('marcadorPop').style.display = 'block';
+    document.getElementById('botaoMarcador').style.display = 'none';
+  }
+  function minimizarMarcador() {
+    document.getElementById('marcadorPop').style.display = 'none';
+    document.getElementById('botaoMarcador').style.display = 'block';
+  }
+
+  function abrirAba(nome) {
+    document.querySelectorAll('.aba').forEach(el => el.classList.remove('active'));
+    document.getElementById(nome).classList.add('active');
+    minimizarMarcador();
+  }
+
+  // --- LÓGICA DE LOGIN ---
+  function validarLogin() {
+    const nome = document.getElementById('nome').value.trim();
+    const senha = document.getElementById('senha').value.trim();
+
+    if (senha === 'dev') {
+        jogadorConfig.tipo = 'DEVGUI';
+        jogadorConfig.nickname = 'Desenvolvedor';
+        abrirAba('painelDev');
+    } else if (senha === 'loja' || senha === 'demo') {
+        jogadorConfig.tipo = 'Comerciante';
+        jogadorConfig.nickname = nome || 'Comerciante';
+        abrirAba('config2');
+    } else if (nome) {
+        jogadorConfig.tipo = 'Jogador';
+        jogadorConfig.nickname = nome;
+        abrirAba('jogos');
+    } else {
+        alert('Por favor, digite seu nome ou a senha de administrador.');
+        return;
+    }
+
+    atualizarPerfilVisual();
+    salvarDados();
+  }
+  
+  function atualizarPerfilVisual() {
+    const perfil = document.getElementById('perfilVisual');
+    if(jogadorConfig.tipo === 'Jogador' && jogadorConfig.nickname) {
+        perfil.textContent = `🎮 Jogando como: ${jogadorConfig.nickname}`;
+        perfil.style.display = 'block';
+    } else if (jogadorConfig.tipo !== 'anonimo' && jogadorConfig.tipo !== 'Jogador') {
+        perfil.textContent = `🔑 Logado como: ${jogadorConfig.tipo}`;
+        perfil.style.display = 'block';
+    } else {
+        perfil.style.display = 'none';
+    }
+  }
+
+  // --- LÓGICA DO BOTÃO DE DOWNLOAD DEMO ---
+  function gerarDownloadDemo() {
+      const contador = parseInt(localStorage.getItem('mimogames_demo_downloads') || '0', 10);
+      const limite = 2;
+
+      if (contador < limite) {
+          const nomeArquivo = `Jogo_${lojaConfig.nome || 'MimoGames'}.html`;
+          const conteudo = document.documentElement.outerHTML;
+          const blob = new Blob([conteudo], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = nomeArquivo;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          localStorage.setItem('mimogames_demo_downloads', contador + 1);
+          alert(`Download gerado! Você tem mais ${limite - (contador + 1)} download(s) gratuito(s).`);
+          
+      } else {
+          alert('Você atingiu o limite de downloads gratuitos na versão DEMO. Por favor, acesse o manual para mais informações.');
+          window.location.href = 'https://guilabriolag.github.io/MimoGames/manual.html';
+      }
+  }
+
+
+  // --- CONFIGURAÇÕES E VISUAL ---
+  function salvarConfig2() { // Comerciante
+    lojaConfig.nome = document.getElementById('nomeLoja').value;
+    lojaConfig.logo = document.getElementById('logoLoja').value;
+    lojaConfig.slogan = document.getElementById('sloganLoja').value;
+    lojaConfig.whatsapp = document.getElementById('whatsappLoja').value;
+    lojaConfig.tipo = document.getElementById('tipoLoja').value;
+    lojaConfig.recompensa = { texto: document.getElementById('premioTexto').value };
+    
+    aplicarConfiguracoesVisuais();
+    salvarDados();
+    alert('Configurações do comerciante salvas!');
+  }
+
+  function salvarConfigDev() { // DEV
+    devConfig.splashLogo = document.getElementById('devSplashLogo').value;
+    devConfig.splashTitulo = document.getElementById('devSplashTitulo').value;
+    devConfig.splashSubtitulo = document.getElementById('devSplashSubtitulo').value;
+    devConfig.contato = document.getElementById('devContato').value;
+    
+    aplicarConfiguracoesVisuais();
+    salvarDados();
+    alert('Configurações de DEV salvas!');
+  }
+  
+  function aplicarConfiguracoesVisuais() {
+    // Aplica configs DEV
+    if(devConfig.splashLogo) document.getElementById('splashLogo').src = devConfig.splashLogo;
+    if(devConfig.splashTitulo) document.getElementById('splashTitulo').textContent = devConfig.splashTitulo;
+    if(devConfig.splashSubtitulo) document.getElementById('splashSubtitulo').textContent = devConfig.splashSubtitulo;
+    if(devConfig.contato) document.getElementById('contatoRodape').textContent = devConfig.contato;
+    
+    // Aplica configs Loja
+    document.getElementById('nomeRodape').textContent = lojaConfig.nome || 'Nome do Negócio';
+    document.getElementById('logoRodape').src = lojaConfig.logo || 'https://via.placeholder.com/80';
+    atualizarVisualLoja(lojaConfig.tipo || 'pizzaria');
+    atualizarBotaoWhatsapp();
+  }
+  
+  function atualizarBotaoWhatsapp() {
+      const whatsappBtn = document.getElementById('whatsappBtn');
+      if (lojaConfig.whatsapp) {
+          const numeroLimpo = lojaConfig.whatsapp.replace(/\D/g, '');
+          whatsappBtn.href = `https://wa.me/55${numeroLimpo}`;
+          whatsappBtn.style.display = 'inline-block';
+      } else {
+          whatsappBtn.style.display = 'none';
+      }
+  }
+
+  function atualizarVisualLoja(tipo) {
+    const estilos = {
+      pizzaria:    { cor: '#b22222', slogan: "Jogue e ganhe pizza quentinha!" },
+      padaria:     { cor: '#d2691e', slogan: "Jogue e leve pão fresco pra casa!" },
+      hamburgueria:{ cor: '#8b4513', slogan: "Ganhe hambúrguer com diversão!" },
+      doceira:     { cor: '#ff69b4', slogan: "Doces e jogos, a combinação perfeita!" },
+      acaitaria:   { cor: '#800080', slogan: "Açaí gelado como prêmio!" },
+      sorveteria:  { cor: '#4682b4', slogan: "Sorvete grátis pra quem vence!" },
+      japones:     { cor: '#ff4500', slogan: "Sua vitória vale um sushi!" },
+      cafeteria:   { cor: '#6f4e37', slogan: "Um café quentinho te espera!" }
+    };
+
+    const estilo = estilos[tipo] || estilos.pizzaria;
+    document.documentElement.style.setProperty('--cor-tema', estilo.cor);
+    document.getElementById('sloganRodape').textContent = lojaConfig.slogan || estilo.slogan;
+  }
+
+  // --- JOGO DA MEMÓRIA ---
+  let cartaVirada = null;
+  function iniciarMemoria() {
+    const emojis = ['🍕','🍔','🍟','🌭','🍣','🍪','🍰','🍩'];
+    const cartas = [...emojis, ...emojis].sort(() => 0.5 - Math.random());
+    const tela = document.getElementById('telaJogo');
+    tela.innerHTML = '';
+    cartas.forEach(emoji => {
+      const div = document.createElement('div');
+      div.className = 'carta';
+      div.dataset.valor = emoji;
+      div.textContent = '❓';
+      div.onclick = () => virarCarta(div);
+      tela.appendChild(div);
+    });
+  }
+
+  function virarCarta(carta) {
+    if (carta.classList.contains('virada') || carta.classList.contains('par')) return;
+    carta.textContent = carta.dataset.valor;
+    carta.classList.add('virada');
+    if (!cartaVirada) {
+      cartaVirada = carta;
+    } else {
+      if (cartaVirada.dataset.valor === carta.dataset.valor) {
+        carta.classList.add('par'); cartaVirada.classList.add('par');
+        cartaVirada = null;
+        verificarVitoria();
+      } else {
+        setTimeout(() => {
+          carta.textContent = '❓'; cartaVirada.textContent = '❓';
+          carta.classList.remove('virada'); cartaVirada.classList.remove('virada');
+          cartaVirada = null;
+        }, 1000);
+      }
+    }
+  }
+
+  function verificarVitoria() {
+    if (document.querySelectorAll('.carta.par').length === 16) { mostrarRecompensa(); }
+  }
+  
+  function mostrarRecompensa() {
+    document.getElementById('modalRecompensa').style.display = 'flex';
+    document.getElementById('textoRecompensa').textContent = lojaConfig.recompensa?.texto || "🎁 Parabéns! Você ganhou!";
+  }
+  function fecharModal() { document.getElementById('modalRecompensa').style.display = 'none'; }
+  
+  // --- FUNÇÕES DE DADOS E TESTES ---
+  function preencherFormularios() {
+      document.getElementById('nomeLoja').value = lojaConfig.nome || '';
+      document.getElementById('logoLoja').value = lojaConfig.logo || '';
+      document.getElementById('sloganLoja').value = lojaConfig.slogan || '';
+      document.getElementById('whatsappLoja').value = lojaConfig.whatsapp || '';
+      document.getElementById('tipoLoja').value = lojaConfig.tipo || 'pizzaria';
+      document.getElementById('premioTexto').value = lojaConfig.recompensa?.texto || '';
+      document.getElementById('devSplashLogo').value = devConfig.splashLogo || '';
+      document.getElementById('devSplashTitulo').value = devConfig.splashTitulo || '';
+      document.getElementById('devSplashSubtitulo').value = devConfig.splashSubtitulo || '';
+      document.getElementById('devContato').value = devConfig.contato || '';
+  }
+
+  function simularVitoria() { mostrarRecompensa(); }
+  
+  function salvarDados() {
+      localStorage.setItem('multiNegocio_jogador', JSON.stringify(jogadorConfig));
+      localStorage.setItem('multiNegocio_loja', JSON.stringify(lojaConfig));
+      localStorage.setItem('multiNegocio_dev', JSON.stringify(devConfig));
+  }
+  
+  function carregarDados() {
+      jogadorConfig = JSON.parse(localStorage.getItem('multiNegocio_jogador')) || { tipo: 'anonimo' };
+      lojaConfig = JSON.parse(localStorage.getItem('multiNegocio_loja')) || {};
+      devConfig = JSON.parse(localStorage.getItem('multiNegocio_dev')) || {};
+      atualizarPerfilVisual();
+  }
+
+  function resetarDados() {
+      localStorage.clear();
+      window.location.reload();
+  }
+</script>
+</body>
+</html>
